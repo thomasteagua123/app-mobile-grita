@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { View, StyleSheet, Dimensions } from "react-native";
 import { Audio } from "expo-av";
 
@@ -13,11 +13,12 @@ type Circle = {
 };
 
 export default function Home() {
-  const [volume, setVolume] = useState(0);
   const [circles, setCircles] = useState<Circle[]>([]);
+  const volumeRef = useRef(0);
 
   useEffect(() => {
     startRecording();
+    startSpawner();
   }, []);
 
   const startRecording = async () => {
@@ -36,37 +37,72 @@ export default function Home() {
 
     recording.setOnRecordingStatusUpdate((status) => {
       if (status.metering !== undefined) {
-        const normalized = Math.max(0, (status.metering + 160) / 160);
-        setVolume(normalized);
-
-        // 💥 Si el volumen es alto → crear manchas
-        if (normalized > 0.4) {
-          createCircle(normalized);
-        }
+        const volume = Math.max(0, (status.metering + 160) / 160);
+        volumeRef.current = volume;
       }
     });
 
     await recording.startAsync();
   };
 
-  // 🎨 Generar color según volumen
-  const getColor = (v: number) => {
-    if (v < 0.3) return "rgba(0, 150, 255, 0.5)"; // azul
-    if (v < 0.6) return "rgba(255, 165, 0, 0.6)"; // naranja
-    return "rgba(255, 0, 0, 0.7)"; // rojo
+  const startSpawner = () => {
+    setInterval(() => {
+      const v = volumeRef.current;
+
+      if (v > 0.6) {
+        for (let i = 0; i < 4; i++) {
+          createCircle(v);
+        }
+      }
+    }, 60);
   };
 
-  // 🎯 Crear círculo
+  const getColor = (v: number) => {
+    if (v > 0.9) {
+      const strongColors = [
+        "rgba(180, 0, 0, 1)",
+        "rgba(120, 0, 120, 1)",
+        "rgba(0, 0, 180, 1)",
+        "rgba(50, 0, 0, 1)",
+      ];
+      return strongColors[Math.floor(Math.random() * strongColors.length)];
+    }
+
+    if (v > 0.45) {
+      const vividColors = [
+        "rgba(255, 165, 0, 1)",
+        "rgba(255, 255, 0, 1)",
+        "rgba(0, 255, 255, 1)",
+        "rgba(0, 200, 255, 1)",
+      ];
+      return vividColors[Math.floor(Math.random() * vividColors.length)];
+    }
+
+    const softColors = [
+      "rgba(200, 255, 200, 0.8)",
+      "rgba(200, 200, 255, 0.8)",
+      "rgba(255, 255, 255, 0.8)",
+      "rgba(220, 255, 240, 0.8)",
+    ];
+    return softColors[Math.floor(Math.random() * softColors.length)];
+  };
+
   const createCircle = (v: number) => {
+    const size = 50 + v * 200;
+
     const newCircle: Circle = {
       id: Math.random().toString(),
-      x: Math.random() * width,
-      y: Math.random() * height,
-      size: 50 + v * 200, // más volumen = más grande
+      x: Math.random() * (width - size),
+      y: Math.random() * (height - size),
+      size,
       color: getColor(v),
     };
 
-    setCircles((prev) => [...prev, newCircle].slice(-30)); // limitar cantidad
+    setCircles((prev) => [...prev, newCircle].slice(-40));
+
+    setTimeout(() => {
+      setCircles((prev) => prev.slice(1));
+    }, 300);
   };
 
   return (
@@ -81,6 +117,7 @@ export default function Home() {
               top: c.y,
               width: c.size,
               height: c.size,
+              borderRadius: c.size / 2,
               backgroundColor: c.color,
             },
           ]}
@@ -97,6 +134,5 @@ const styles = StyleSheet.create({
   },
   circle: {
     position: "absolute",
-    borderRadius: 999,
   },
 });
