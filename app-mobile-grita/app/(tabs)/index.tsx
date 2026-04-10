@@ -1,5 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import { View, StyleSheet, Dimensions } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Dimensions,
+  TouchableOpacity,
+} from "react-native";
 import { Audio } from "expo-av";
 
 const { width, height } = Dimensions.get("window");
@@ -13,13 +19,19 @@ type Circle = {
 };
 
 export default function Home() {
+  const [started, setStarted] = useState(false);
   const [circles, setCircles] = useState<Circle[]>([]);
   const volumeRef = useRef(0);
+  const intervalRef = useRef<any>(null);
 
   useEffect(() => {
-    startRecording();
-    startSpawner();
-  }, []);
+    if (started) {
+      startRecording();
+      startSpawner();
+    }
+
+    return () => stopAll();
+  }, [started]);
 
   const startRecording = async () => {
     await Audio.requestPermissionsAsync();
@@ -46,7 +58,7 @@ export default function Home() {
   };
 
   const startSpawner = () => {
-    setInterval(() => {
+    intervalRef.current = setInterval(() => {
       const v = volumeRef.current;
 
       if (v > 0.6) {
@@ -57,8 +69,20 @@ export default function Home() {
     }, 60);
   };
 
+  const stopAll = () => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
+  };
+
+  const handleReset = () => {
+    stopAll();
+    setCircles([]);
+    setStarted(false);
+  };
+
   const getColor = (v: number) => {
-    if (v > 0.9) {
+    if (v > 0.6) {
       const strongColors = [
         "rgba(180, 0, 0, 1)",
         "rgba(120, 0, 120, 1)",
@@ -68,7 +92,7 @@ export default function Home() {
       return strongColors[Math.floor(Math.random() * strongColors.length)];
     }
 
-    if (v > 0.45) {
+    if (v > 0.3) {
       const vividColors = [
         "rgba(255, 165, 0, 1)",
         "rgba(255, 255, 0, 1)",
@@ -105,6 +129,27 @@ export default function Home() {
     }, 300);
   };
 
+  if (!started) {
+    return (
+      <View style={styles.startContainer}>
+        <Text style={styles.title}>Grita y pinta</Text>
+
+        <Text style={styles.description}>
+          Expresá tus emociones a través del sonido.
+          {"\n\n"}
+          Cuanto más fuerte grites, más intensa será tu obra.
+        </Text>
+
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => setStarted(true)}
+        >
+          <Text style={styles.buttonText}>Iniciar</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       {circles.map((c) => (
@@ -123,6 +168,10 @@ export default function Home() {
           ]}
         />
       ))}
+
+      <TouchableOpacity style={styles.resetButton} onPress={handleReset}>
+        <Text style={styles.resetText}>Reiniciar</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -134,5 +183,46 @@ const styles = StyleSheet.create({
   },
   circle: {
     position: "absolute",
+  },
+  startContainer: {
+    flex: 1,
+    backgroundColor: "black",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 30,
+  },
+  title: {
+    fontSize: 32,
+    color: "white",
+    marginBottom: 20,
+  },
+  description: {
+    fontSize: 16,
+    color: "gray",
+    textAlign: "center",
+    marginBottom: 40,
+  },
+  button: {
+    backgroundColor: "white",
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    borderRadius: 10,
+  },
+  buttonText: {
+    color: "black",
+    fontSize: 18,
+  },
+  resetButton: {
+    position: "absolute",
+    bottom: 40,
+    alignSelf: "center",
+    backgroundColor: "white",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+  },
+  resetText: {
+    color: "black",
+    fontSize: 16,
   },
 });
