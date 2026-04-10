@@ -82,7 +82,7 @@ export default function Home() {
   };
 
   const getColor = (v: number) => {
-    if (v > 0.6) {
+    if (v > 0.9) {
       const strongColors = [
         "rgba(180, 0, 0, 1)",
         "rgba(120, 0, 120, 1)",
@@ -92,7 +92,7 @@ export default function Home() {
       return strongColors[Math.floor(Math.random() * strongColors.length)];
     }
 
-    if (v > 0.3) {
+    if (v > 0.5) {
       const vividColors = [
         "rgba(255, 165, 0, 1)",
         "rgba(255, 255, 0, 1)",
