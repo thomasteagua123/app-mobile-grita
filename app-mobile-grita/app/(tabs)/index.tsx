@@ -1,12 +1,15 @@
+import { Audio } from "expo-av";
+import * as Sharing from "expo-sharing";
 import { useEffect, useRef, useState } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
+  Alert,
   Dimensions,
+  StyleSheet,
+  Text,
   TouchableOpacity,
+  View,
 } from "react-native";
-import { Audio } from "expo-av";
+import { captureRef } from "react-native-view-shot";
 
 const { width, height } = Dimensions.get("window");
 
@@ -18,11 +21,12 @@ type Circle = {
   color: string;
 };
 
-export default function Home() {
+export default function App() {
   const [started, setStarted] = useState(false);
   const [circles, setCircles] = useState<Circle[]>([]);
   const volumeRef = useRef(0);
   const intervalRef = useRef<any>(null);
+  const viewRef = useRef<View>(null);
 
   useEffect(() => {
     if (started) {
@@ -81,6 +85,32 @@ export default function Home() {
     setStarted(false);
   };
 
+  const takeScreenshot = async () => {
+    try {
+      if (!viewRef.current) return;
+
+      const uri = await captureRef(viewRef, {
+        format: "png",
+        quality: 1,
+      });
+
+      console.log("Imagen:", uri);
+
+      // 👇 chequea si se puede compartir
+      const isAvailable = await Sharing.isAvailableAsync();
+
+      if (!isAvailable) {
+        Alert.alert("Error", "No se puede compartir en este dispositivo");
+        return;
+      }
+
+      // 👇 abre menú de compartir
+      await Sharing.shareAsync(uri);
+    } catch (error) {
+      console.log("Error screenshot:", error);
+    }
+  };
+
   const getColor = (v: number) => {
     if (v > 0.9) {
       const strongColors = [
@@ -92,7 +122,7 @@ export default function Home() {
       return strongColors[Math.floor(Math.random() * strongColors.length)];
     }
 
-    if (v > 0.5) {
+    if (v > 0.45) {
       const vividColors = [
         "rgba(255, 165, 0, 1)",
         "rgba(255, 255, 0, 1)",
@@ -113,20 +143,24 @@ export default function Home() {
 
   const createCircle = (v: number) => {
     const size = 50 + v * 200;
+    const padding = 20;
+
+    const x = padding + Math.random() * (width - size - padding * 2);
+    const y = padding + Math.random() * (height - size - padding * 2);
 
     const newCircle: Circle = {
       id: Math.random().toString(),
-      x: Math.random() * (width - size),
-      y: Math.random() * (height - size),
+      x,
+      y,
       size,
       color: getColor(v),
     };
 
-    setCircles((prev) => [...prev, newCircle].slice(-40));
+    setCircles((prev) => [...prev, newCircle]);
 
     setTimeout(() => {
-      setCircles((prev) => prev.slice(1));
-    }, 300);
+      setCircles((prev) => prev.filter((c) => c.id !== newCircle.id));
+    }, 5000);
   };
 
   if (!started) {
@@ -144,7 +178,7 @@ export default function Home() {
           style={styles.button}
           onPress={() => setStarted(true)}
         >
-          <Text style={styles.buttonText}>Iniciar</Text>
+          <Text style={styles.buttonText}>Empezar</Text>
         </TouchableOpacity>
       </View>
     );
@@ -152,22 +186,28 @@ export default function Home() {
 
   return (
     <View style={styles.container}>
-      {circles.map((c) => (
-        <View
-          key={c.id}
-          style={[
-            styles.circle,
-            {
-              left: c.x,
-              top: c.y,
-              width: c.size,
-              height: c.size,
-              borderRadius: c.size / 2,
-              backgroundColor: c.color,
-            },
-          ]}
-        />
-      ))}
+      <View ref={viewRef} collapsable={false} style={styles.captureArea}>
+        {circles.map((c) => (
+          <View
+            key={c.id}
+            style={[
+              styles.circle,
+              {
+                left: c.x,
+                top: c.y,
+                width: c.size,
+                height: c.size,
+                borderRadius: c.size / 2,
+                backgroundColor: c.color,
+              },
+            ]}
+          />
+        ))}
+      </View>
+
+      <TouchableOpacity style={styles.printButton} onPress={takeScreenshot}>
+        <Text style={styles.printText}>Imprime tus emociones</Text>
+      </TouchableOpacity>
 
       <TouchableOpacity style={styles.resetButton} onPress={handleReset}>
         <Text style={styles.resetText}>Reiniciar</Text>
@@ -189,28 +229,51 @@ const styles = StyleSheet.create({
     backgroundColor: "black",
     justifyContent: "center",
     alignItems: "center",
-    padding: 30,
+    paddingHorizontal: 30,
   },
+
   title: {
-    fontSize: 32,
+    fontSize: 34,
     color: "white",
     marginBottom: 20,
+    textAlign: "center",
+    fontWeight: "bold",
   },
+
   description: {
     fontSize: 16,
-    color: "gray",
+    color: "#aaa",
     textAlign: "center",
     marginBottom: 40,
+    lineHeight: 22,
+    maxWidth: 300, // 👈 esto centra visualmente el texto
   },
+
   button: {
     backgroundColor: "white",
-    paddingVertical: 12,
-    paddingHorizontal: 30,
-    borderRadius: 10,
+    paddingVertical: 14,
+    paddingHorizontal: 40,
+    borderRadius: 14,
+    elevation: 5, // Android shadow
   },
+
   buttonText: {
     color: "black",
     fontSize: 18,
+    fontWeight: "600",
+  },
+  printButton: {
+    position: "absolute",
+    bottom: 90,
+    alignSelf: "center",
+    backgroundColor: "white",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+  },
+  printText: {
+    color: "black",
+    fontSize: 16,
   },
   resetButton: {
     position: "absolute",
@@ -224,5 +287,9 @@ const styles = StyleSheet.create({
   resetText: {
     color: "black",
     fontSize: 16,
+  },
+  captureArea: {
+    flex: 1,
+    backgroundColor: "black",
   },
 });
