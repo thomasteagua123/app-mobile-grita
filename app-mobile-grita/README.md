@@ -1,50 +1,138 @@
-# Welcome to your Expo app 👋
+# Manual Básico de Uso — Grita Mobile
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+## Clonar el Repositorio
 
-## Get started
-
-1. Install dependencies
-
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+Abrir una terminal y ejecutar:
 
 ```bash
-npm run reset-project
+git clone https://github.com/thomasteagua123/app-mobile-grita.git
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Entrar a la carpeta del proyecto:
 
-## Learn more
+```bash
+cd app-mobile-grita
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+---
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+# Abrir el Proyecto en VSCode
 
-## Join the community
+```bash
+code .
+```
 
-Join our community of developers creating universal apps.
+---
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+# Entrar a la Carpeta app/
+
+```bash
+cd app/
+```
+
+Ver archivos:
+
+```bash
+ls
+```
+
+Aparecerá algo parecido a esto:
+
+```bash
+_layout.tsx
+modal.tsx
+(tabs)
+```
+
+---
+
+# Entrar a la Carpeta (tabs)
+
+La carpeta `(tabs)` tiene paréntesis, por eso no funciona escribir:
+
+```bash
+cd (tabs)/
+```
+
+Eso genera este error:
+
+```bash
+bash: error de sintaxis cerca del elemento inesperado `tabs'
+```
+
+---
+
+# Forma Correcta
+
+Hay que escapar los paréntesis:
+
+```bash
+cd \(tabs\)
+```
+
+Ejemplo:
+
+```bash
+etec@213-02:~/Documentos/app-mobile-grita/app-mobile-grita/app$ cd \(tabs\)
+etec@213-02:~/Documentos/app-mobile-grita/app-mobile-grita/app/(tabs)$
+```
+
+---
+
+# Ver los Archivos
+
+```bash
+ls
+```
+
+Resultado:
+
+```bash
+explore.tsx
+index.tsx
+_layout.tsx
+```
+
+El archivo principal es:
+
+```bash
+index.tsx
+```
+
+---
+
+# Volver Atrás
+
+```bash
+cd ..
+```
+
+---
+
+# Ejecutar el Proyecto
+
+Desde la raíz del proyecto:
+
+```bash
+bun install
+```
+
+Luego:
+
+```bash
+bunx expo start
+```
+
+---
+
+# Repositorio
+
+```text
+https://github.com/thomasteagua123/app-mobile-grita
+```
+
+---
+
+# Autor
+
+Proyecto desarrollado por Thomas Avila.
